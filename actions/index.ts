@@ -14,19 +14,6 @@ interface GameDeploymentData {
   chainId: number;
 }
 
-// Define the ContractDetails interface to match your database schema
-interface ContractDetails {
-  id: number;
-  contract_name: string;
-  address: string;
-  abi: string; // Assuming ABI is stored as a stringified JSON
-  bytecode: string;
-  deployed_at: Date; // MariaDB DATETIME maps to JS Date
-  status: string;
-  chain_id: number;
-  compiler_version: string;
-}
-
 export async function getFactoryDetails(): Promise<ContractDetails | null> {
   const factoryAddress = process.env.NEXT_PUBLIC_FACTORY_ADDRESS;
   const chainId = process.env.NEXT_PUBLIC_CHAIN_ID;
