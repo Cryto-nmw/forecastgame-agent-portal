@@ -1,3 +1,4 @@
+// agent-portal/components/CreateGameForm.tsx
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -14,7 +15,6 @@ declare global {
   }
 }
 
-// Define the predefined categories
 const PREDEFINED_CATEGORIES = [
   "Weather",
   "Politics",
@@ -30,7 +30,6 @@ export default function CreateGameForm({ factoryAbi }: CreateGameFormProps) {
   const [answersInput, setAnswersInput] = useState("");
   const [oddsInput, setOddsInput] = useState("");
   const [depositAmount, setDepositAmount] = useState("");
-  // New state for selected categories
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
   const [signer, setSigner] = useState<JsonRpcSigner | null>(null);
@@ -111,7 +110,6 @@ export default function CreateGameForm({ factoryAbi }: CreateGameFormProps) {
       return;
     }
     if (selectedCategories.length === 0) {
-      // Require at least one category
       setMessage({
         type: "error",
         text: "Please select at least one category.",
@@ -162,7 +160,7 @@ export default function CreateGameForm({ factoryAbi }: CreateGameFormProps) {
         answersArray,
         oddsArray: oddsArray.map((o) => o.toString()),
         depositValue: depositValue.toString(),
-        selectedCategories: selectedCategories, // For console log
+        selectedCategories: selectedCategories,
       });
 
       const tx = await contractRef.current.createGame(
@@ -218,7 +216,7 @@ export default function CreateGameForm({ factoryAbi }: CreateGameFormProps) {
             deployedByAddress: await signer.getAddress(),
             transactionHash: receipt.hash,
             chainId: parseInt(chainId!),
-            categories: selectedCategories, // <-- PASS SELECTED CATEGORIES
+            categories: selectedCategories,
           });
 
           if (result.success) {
@@ -226,7 +224,6 @@ export default function CreateGameForm({ factoryAbi }: CreateGameFormProps) {
               type: "success",
               text: `Game created and recorded in DB! Game ID: ${gameIdOnChain}`,
             });
-            // Optional: Clear form after successful submission
             setQuestion("");
             setAnswersInput("");
             setOddsInput("");
@@ -260,18 +257,16 @@ export default function CreateGameForm({ factoryAbi }: CreateGameFormProps) {
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="bg-white p-6 rounded-lg shadow-md mb-8"
-    >
-      <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">
-        Create New Game
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {" "}
+      {/* Use space-y for consistent vertical rhythm */}
+      <h2 className="text-3xl font-extrabold text-gray-900 mb-6 text-center">
+        Deploy New Forecast Game
       </h2>
-
-      <div className="mb-4">
+      <div>
         <label
           htmlFor="question"
-          className="block text-gray-700 text-sm font-bold mb-2"
+          className="block text-sm font-semibold text-gray-700 mb-2"
         >
           Question
         </label>
@@ -281,15 +276,13 @@ export default function CreateGameForm({ factoryAbi }: CreateGameFormProps) {
           onChange={(e) => setQuestion(e.target.value)}
           placeholder="e.g., Will BTC price be over $70,000 by 2025-12-31?"
           rows={3}
-          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
           required
         ></textarea>
       </div>
-
-      <div className="mb-4">
+      <div>
         <label
           htmlFor="answers"
-          className="block text-gray-700 text-sm font-bold mb-2"
+          className="block text-sm font-semibold text-gray-700 mb-2"
         >
           Answers (comma-separated)
         </label>
@@ -299,18 +292,16 @@ export default function CreateGameForm({ factoryAbi }: CreateGameFormProps) {
           value={answersInput}
           onChange={(e) => setAnswersInput(e.target.value)}
           placeholder="e.g., Yes,No,Maybe"
-          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
           required
         />
         <p className="text-gray-500 text-xs mt-1">
           Enter multiple answers separated by commas (e.g., Yes,No).
         </p>
       </div>
-
-      <div className="mb-4">
+      <div>
         <label
           htmlFor="odds"
-          className="block text-gray-700 text-sm font-bold mb-2"
+          className="block text-sm font-semibold text-gray-700 mb-2"
         >
           Odds (comma-separated, integer values corresponding to answers)
         </label>
@@ -320,7 +311,6 @@ export default function CreateGameForm({ factoryAbi }: CreateGameFormProps) {
           value={oddsInput}
           onChange={(e) => setOddsInput(e.target.value)}
           placeholder="e.g., 100,200,50"
-          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
           required
         />
         <p className="text-gray-500 text-xs mt-1">
@@ -328,23 +318,25 @@ export default function CreateGameForm({ factoryAbi }: CreateGameFormProps) {
           integers (e.g., 100,200).
         </p>
       </div>
-
-      {/* New Category Multi-Select Field */}
-      <div className="mb-6">
-        <label className="block text-gray-700 text-sm font-bold mb-2">
+      {/* Categories Field */}
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 mb-2">
           Categories
         </label>
-        <div className="flex flex-wrap gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-3 bg-gray-50 rounded-md border border-gray-200">
           {PREDEFINED_CATEGORIES.map((category) => (
-            <label key={category} className="inline-flex items-center">
+            <label
+              key={category}
+              className="inline-flex items-center text-sm text-gray-700 cursor-pointer hover:bg-gray-100 p-2 rounded-md transition-colors"
+            >
               <input
                 type="checkbox"
-                className="form-checkbox h-4 w-4 text-blue-600 rounded"
+                className="form-checkbox h-4 w-4 text-blue-600 rounded focus:ring-blue-500"
                 value={category}
                 checked={selectedCategories.includes(category)}
                 onChange={() => handleCategoryChange(category)}
               />
-              <span className="ml-2 text-gray-700 text-sm">{category}</span>
+              <span className="ml-2">{category}</span>
             </label>
           ))}
         </div>
@@ -354,11 +346,10 @@ export default function CreateGameForm({ factoryAbi }: CreateGameFormProps) {
           </p>
         )}
       </div>
-
-      <div className="mb-6">
+      <div>
         <label
           htmlFor="depositAmount"
-          className="block text-gray-700 text-sm font-bold mb-2"
+          className="block text-sm font-semibold text-gray-700 mb-2"
         >
           Initial Deposit Amount (ETH)
         </label>
@@ -370,11 +361,12 @@ export default function CreateGameForm({ factoryAbi }: CreateGameFormProps) {
           step="0.0001"
           min="0"
           placeholder="e.g., 0.1"
-          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
           required
         />
+        <p className="text-gray-500 text-xs mt-1">
+          Amount will be sent as Wei to the contract.
+        </p>
       </div>
-
       <button
         type="submit"
         disabled={
@@ -385,11 +377,10 @@ export default function CreateGameForm({ factoryAbi }: CreateGameFormProps) {
           !factoryAbi ||
           selectedCategories.length === 0
         }
-        className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full"
+        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-lg"
       >
-        {isLoading ? "Creating Game..." : "Create Forecast Game"}
+        {isLoading ? "Creating Game..." : "Deploy Forecast Game"}
       </button>
-
       {message && (
         <div
           className={`message-box ${

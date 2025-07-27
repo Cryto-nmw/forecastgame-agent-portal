@@ -13,13 +13,13 @@ export default function CategoryTabs({
   onSelectCategory,
 }: CategoryTabsProps) {
   return (
-    <div className="flex flex-wrap gap-2 mb-6 justify-center">
+    <div className="flex flex-wrap justify-center gap-3 mb-8 p-3 bg-gray-100 rounded-lg shadow-sm">
       <button
         onClick={() => onSelectCategory("All")}
-        className={`py-2 px-4 rounded-full text-sm font-medium transition-colors ${
+        className={`py-2 px-5 rounded-full text-base font-medium transition-all duration-200 ease-in-out ${
           activeCategory === "All"
-            ? "bg-blue-600 text-white"
-            : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+            ? "bg-blue-600 text-white shadow-md"
+            : "bg-white text-gray-700 hover:bg-gray-200 border border-gray-300"
         }`}
       >
         All
@@ -28,10 +28,10 @@ export default function CategoryTabs({
         <button
           key={category}
           onClick={() => onSelectCategory(category)}
-          className={`py-2 px-4 rounded-full text-sm font-medium transition-colors ${
+          className={`py-2 px-5 rounded-full text-base font-medium transition-all duration-200 ease-in-out ${
             activeCategory === category
-              ? "bg-blue-600 text-white"
-              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              ? "bg-blue-600 text-white shadow-md"
+              : "bg-white text-gray-700 hover:bg-gray-200 border border-gray-300"
           }`}
         >
           {category}
