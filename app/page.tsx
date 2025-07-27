@@ -1,3 +1,4 @@
+// app/page.tsx
 import ConnectWalletButton from "@/components/ConnectWalletButton";
 import CreateGameForm from "@/components/CreateGameForm";
 import { getFactoryDetails } from "@/actions";
@@ -44,8 +45,10 @@ export default async function Home() {
 
       <h2 className="text-2xl font-bold mb-4">Create New Game</h2>
       {factoryDetails ? (
-        <CreateGameForm factoryAbi={factoryDetails.abi} />
+        // --- CHANGE THIS LINE ---
+        <CreateGameForm factoryAbi={factoryDetails.abi as string} />
       ) : (
+        // --- TO THIS ----------
         <p className="text-red-500">
           Error: ForecastGameFactory details not found in database. Ensure the
           factory is deployed and its details are logged correctly.
