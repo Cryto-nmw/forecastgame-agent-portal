@@ -1,13 +1,17 @@
-// agent-portal/components/ConnectWalletButton.tsx
+// components/ConnectWalletButton.tsx
 "use client";
 
 import { useAccount, useConnect, useDisconnect } from "wagmi";
-import { InjectedConnector } from "wagmi/connectors/injected";
+// --- CHANGE THIS LINE ---
+import { injected } from "wagmi/connectors"; // Import 'injected' function directly
+// --- END CHANGE ---
 
 export default function ConnectWalletButton() {
   const { address, isConnected } = useAccount();
   const { connect } = useConnect({
-    connector: new InjectedConnector(),
+    // --- CHANGE THIS LINE ---
+    connector: injected(), // Use the injected() function to create the connector instance
+    // --- END CHANGE ---
   });
   const { disconnect } = useDisconnect();
 
