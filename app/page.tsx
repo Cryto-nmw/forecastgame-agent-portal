@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import ConnectWalletButton from "@/components/ConnectWalletButton";
+import ConnectWalletButton from "@/components/ConnectWalletButton"; // Ensure this component is styled
 import CreateGameForm from "@/components/CreateGameForm";
 import CategoryTabs from "@/components/CategoryTabs";
 import GameList from "@/components/GameList";
@@ -84,13 +84,11 @@ export default function Home() {
   const totalPages = Math.ceil(totalGamesCount / GAMES_PER_PAGE);
 
   return (
-    <main className="min-h-screen bg-gray-50 flex justify-center py-12 px-4">
-      {" "}
-      {/* Centered content */}
+    <main className="min-h-screen bg-gray-100 flex justify-center py-12 px-4">
       <div className="w-full max-w-6xl bg-white shadow-xl rounded-xl p-8 space-y-12">
-        {" "}
-        {/* Professional container */}
-        <header className="text-center mb-10">
+        <header className="text-center pb-8 border-b border-gray-200">
+          {" "}
+          {/* Added border-b */}
           <h1 className="text-5xl font-extrabold text-gray-900 leading-tight mb-4">
             Agent Operations Dashboard
           </h1>
@@ -98,12 +96,17 @@ export default function Home() {
             Manage your Forecast Game deployments efficiently.
           </p>
         </header>
+
         {/* Connection & Factory Info Section */}
-        <section className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-6 rounded-lg shadow-lg flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="text-lg space-y-2">
+        <section className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-8 rounded-lg shadow-lg flex flex-col md:flex-row items-center justify-between gap-6">
+          {" "}
+          {/* Deeper gradient */}
+          <div className="text-lg space-y-3">
+            {" "}
+            {/* Increased space-y */}
             <p>
               Connected Chain:{" "}
-              <span className="font-semibold">
+              <span className="font-semibold text-blue-200">
                 {process.env.NEXT_PUBLIC_CHAIN_NAME || "Loading..."} (
                 {process.env.NEXT_PUBLIC_CHAIN_ID || "..."})
               </span>
@@ -117,54 +120,62 @@ export default function Home() {
             {factoryDetails && (
               <p>
                 Factory Deployed At (DB):{" "}
-                <span className="font-semibold">
+                <span className="font-semibold text-blue-200">
                   {new Date(factoryDetails.deployed_at).toLocaleString()}
                 </span>
               </p>
             )}
             <p>
               Agent ID:{" "}
-              <span className="font-semibold">
+              <span className="font-semibold text-blue-200">
                 {process.env.NEXT_PUBLIC_AGENT_ID || "Not set"}
               </span>
             </p>
           </div>
           <div className="flex-shrink-0">
-            <ConnectWalletButton />{" "}
-            {/* Assuming ConnectWalletButton has professional styling */}
+            {/* The ConnectWalletButton needs styling too */}
+            <ConnectWalletButton />
           </div>
         </section>
+
         {/* Create Game Form Section */}
         <section className="bg-white p-8 rounded-lg shadow-md border border-gray-200">
           {factoryDetails ? (
             <CreateGameForm factoryAbi={factoryDetails.abi as string} />
           ) : (
-            <div className="text-red-600 text-center text-lg p-6 bg-red-50 rounded-lg border border-red-200">
+            <div className="bg-red-50 text-red-700 text-center text-lg p-6 rounded-lg border border-red-300">
+              {" "}
+              {/* Stronger error style */}
               Error: ForecastGameFactory details not found in database. Please
               ensure the factory is deployed and its details are logged
               correctly.
             </div>
           )}
         </section>
+
         {/* Deployed Games List Section */}
         <section className="bg-gray-50 p-8 rounded-lg shadow-inner border border-gray-200">
-          <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">
+          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">
             Deployed Games Overview
-          </h2>
-
+          </h2>{" "}
+          {/* Increased mb */}
           <CategoryTabs
             categories={allCategories}
             activeCategory={activeCategory}
             onSelectCategory={handleCategoryChange}
           />
-
           {isLoadingGames ? (
-            <div className="text-center text-blue-600 text-lg py-10">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            <div className="text-center text-blue-600 text-lg py-12">
+              {" "}
+              {/* Increased py */}
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mx-auto mb-4"></div>{" "}
+              {/* Larger spinner */}
               Loading deployed games...
             </div>
           ) : errorLoadingGames ? (
-            <div className="text-center text-red-600 text-lg py-10 bg-red-50 rounded-md border border-red-200">
+            <div className="bg-red-50 text-red-700 text-center text-lg py-10 rounded-lg border border-red-300">
+              {" "}
+              {/* Stronger error style */}
               {errorLoadingGames}
             </div>
           ) : (

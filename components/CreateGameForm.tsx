@@ -262,10 +262,13 @@ export default function CreateGameForm({ factoryAbi }: CreateGameFormProps) {
         Deploy New Forecast Game
       </h2>
 
-      <div>
+      {/* Question Field Group */}
+      <div className="space-y-2">
+        {" "}
+        {/* Added space-y-2 for consistent internal spacing */}
         <label
           htmlFor="question"
-          className="block text-sm font-semibold text-gray-700 mb-2"
+          className="block text-sm font-semibold text-gray-700"
         >
           Question
         </label>
@@ -279,10 +282,11 @@ export default function CreateGameForm({ factoryAbi }: CreateGameFormProps) {
         ></textarea>
       </div>
 
-      <div>
+      {/* Answers Field Group */}
+      <div className="space-y-2">
         <label
           htmlFor="answers"
-          className="block text-sm font-semibold text-gray-700 mb-2"
+          className="block text-sm font-semibold text-gray-700"
         >
           Answers (comma-separated)
         </label>
@@ -294,15 +298,16 @@ export default function CreateGameForm({ factoryAbi }: CreateGameFormProps) {
           placeholder="e.g., Yes,No,Maybe"
           required
         />
-        <p className="text-gray-500 text-xs mt-1">
+        <p className="text-gray-500 text-xs">
           Enter multiple answers separated by commas (e.g., Yes,No).
         </p>
       </div>
 
-      <div>
+      {/* Odds Field Group */}
+      <div className="space-y-2">
         <label
           htmlFor="odds"
-          className="block text-sm font-semibold text-gray-700 mb-2"
+          className="block text-sm font-semibold text-gray-700"
         >
           Odds (comma-separated, integer values corresponding to answers)
         </label>
@@ -314,18 +319,20 @@ export default function CreateGameForm({ factoryAbi }: CreateGameFormProps) {
           placeholder="e.g., 100,200,50"
           required
         />
-        <p className="text-gray-500 text-xs mt-1">
+        <p className="text-gray-500 text-xs">
           Enter odds for each answer, separated by commas. Values must be
           integers (e.g., 100,200).
         </p>
       </div>
 
-      {/* Categories Field */}
-      <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">
+      {/* Categories Field Group */}
+      <div className="space-y-2">
+        <label className="block text-sm font-semibold text-gray-700">
           Categories
         </label>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-3 bg-gray-50 rounded-md border border-gray-200">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+          {" "}
+          {/* Increased padding and gap */}
           {PREDEFINED_CATEGORIES.map((category) => (
             <label
               key={category}
@@ -349,10 +356,11 @@ export default function CreateGameForm({ factoryAbi }: CreateGameFormProps) {
         )}
       </div>
 
-      <div>
+      {/* Initial Deposit Field Group */}
+      <div className="space-y-2">
         <label
           htmlFor="depositAmount"
-          className="block text-sm font-semibold text-gray-700 mb-2"
+          className="block text-sm font-semibold text-gray-700"
         >
           Initial Deposit Amount (ETH)
         </label>
@@ -366,15 +374,15 @@ export default function CreateGameForm({ factoryAbi }: CreateGameFormProps) {
           placeholder="e.g., 0.1"
           required
         />
-        <p className="text-gray-500 text-xs mt-1">
+        <p className="text-gray-500 text-xs">
           Amount will be sent as Wei to the contract.
         </p>
       </div>
 
-      {/* Button and Message Container */}
-      <div className="flex flex-col items-center pt-4">
+      {/* Submit Button and Message */}
+      <div className="pt-4">
         {" "}
-        {/* Added padding top for separation */}
+        {/* Removed flex-col and items-center to let btn-primary handle width */}
         <button
           type="submit"
           disabled={
@@ -385,18 +393,42 @@ export default function CreateGameForm({ factoryAbi }: CreateGameFormProps) {
             !factoryAbi ||
             selectedCategories.length === 0
           }
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-lg"
+          className="btn-primary w-full" /* Use btn-primary and enforce full width */
         >
-          {isLoading ? "Creating Game..." : "Deploy Forecast Game"}
+          {isLoading ? (
+            <span className="flex items-center justify-center">
+              <svg
+                className="animate-spin h-5 w-5 mr-3 text-white"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+              Creating Game...
+            </span>
+          ) : (
+            "Deploy Forecast Game"
+          )}
         </button>
         {message && (
           <div
             className={`message-box ${
               message.type === "success" ? "success" : "error"
-            } mt-4 w-full`}
+            } mt-4`}
           >
             {" "}
-            {/* Ensure message takes full width */}
+            {/* mt-4 for spacing */}
             {message.text}
           </div>
         )}

@@ -23,9 +23,11 @@ export default function GameList({
 
   if (!games || games.length === 0) {
     return (
-      <div className="bg-white p-8 rounded-lg shadow-md text-center text-gray-600 text-lg">
-        <p className="mb-2">No deployed games found for this category.</p>
-        <p className="text-sm">
+      <div className="bg-white p-8 rounded-lg shadow-md text-center text-gray-600 text-lg border border-gray-200">
+        <p className="mb-2 text-gray-700">
+          No deployed games found for this category.
+        </p>
+        <p className="text-sm text-gray-500">
           Try deploying a new game or selecting a different category.
         </p>
       </div>
@@ -54,7 +56,7 @@ export default function GameList({
               </h3>
               <p className="text-gray-700 text-sm mb-1">
                 <span className="font-semibold">Address:</span>{" "}
-                <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded-md break-all">
+                <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded-md break-all text-gray-800">
                   {game.game_address}
                 </span>
               </p>
@@ -105,7 +107,7 @@ export default function GameList({
           <button
             onClick={() => onPageChange(currentPage - 1)}
             disabled={currentPage === 1}
-            className="flex items-center px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors text-base"
+            className="btn-primary py-2 px-5 text-base"
           >
             <svg
               className="w-4 h-4 mr-2"
@@ -129,7 +131,7 @@ export default function GameList({
           <button
             onClick={() => onPageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
-            className="flex items-center px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors text-base"
+            className="btn-primary py-2 px-5 text-base"
           >
             Next
             <svg
