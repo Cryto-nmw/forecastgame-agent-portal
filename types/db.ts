@@ -1,5 +1,8 @@
-// types/db.ts
-export interface ContractDetails {
+// agent-portal/types/db.ts
+import { RowDataPacket } from "mysql2/promise"; // <-- ADD THIS IMPORT
+
+export interface ContractDetails extends RowDataPacket {
+  // <-- ADD 'extends RowDataPacket'
   id: number;
   contract_name: string;
   address: string;
@@ -11,7 +14,8 @@ export interface ContractDetails {
   compiler_version: string;
 }
 
-export interface DeploymentLog {
+export interface DeploymentLog extends RowDataPacket {
+  // <-- ADD 'extends RowDataPacket'
   id: number;
   deployment_id: number;
   timestamp: Date;
@@ -19,7 +23,8 @@ export interface DeploymentLog {
   message: string;
 }
 
-export interface AgentDeployedGame {
+export interface AgentDeployedGame extends RowDataPacket {
+  // <-- ADD 'extends RowDataPacket'
   id: number;
   factory_deployment_id: number;
   game_id_on_chain: number;
