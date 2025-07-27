@@ -4,7 +4,7 @@ import { RowDataPacket, ResultSetHeader } from "mysql2/promise";
 import { ContractDetails, DeploymentLog, AgentDeployedGame } from "@/types/db"; // Import types
 
 // Type definitions for query results
-interface RunResult extends ResultSetHeader {}
+// interface RunResult extends ResultSetHeader {}
 
 // Create a connection pool (recommended for server applications)
 let pool: mysql.Pool | null = null;
