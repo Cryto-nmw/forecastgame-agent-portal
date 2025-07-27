@@ -1,7 +1,7 @@
 // app/page.tsx
 import ConnectWalletButton from "@/components/ConnectWalletButton";
 import CreateGameForm from "@/components/CreateGameForm";
-import { getFactoryDetails } from "@/actions";
+import { getFactoryDetails } from "@/actions/index";
 
 export default async function Home() {
   const factoryDetails = await getFactoryDetails();
