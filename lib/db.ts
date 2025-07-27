@@ -5,6 +5,7 @@ import { ContractDetails, DeploymentLog, AgentDeployedGame } from "@/types/db"; 
 
 // Type definitions for query results
 // interface RunResult extends ResultSetHeader {}
+type RunResult = ResultSetHeader; // <-- CHANGE TO THIS
 
 // Create a connection pool (recommended for server applications)
 let pool: mysql.Pool | null = null;
