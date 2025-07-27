@@ -1,13 +1,9 @@
 // agent-portal/lib/db.ts
-import mysql from "mysql2/promise"; // Use the promise-based API
-import { RowDataPacket, ResultSetHeader } from "mysql2/promise";
-import { ContractDetails, DeploymentLog, AgentDeployedGame } from "@/types/db"; // Import types
+import mysql, { RowDataPacket, ResultSetHeader } from "mysql2/promise";
+import { ContractDetails, DeploymentLog, AgentDeployedGame } from "@/types/db";
 
-// Type definitions for query results
-// interface RunResult extends ResultSetHeader {}
-type RunResult = ResultSetHeader; // <-- CHANGE TO THIS
+type RunResult = ResultSetHeader;
 
-// Create a connection pool (recommended for server applications)
 let pool: mysql.Pool | null = null;
 
 async function getPool(): Promise<mysql.Pool> {
@@ -15,7 +11,6 @@ async function getPool(): Promise<mysql.Pool> {
     return pool;
   }
 
-  // Ensure environment variables are loaded
   if (
     !process.env.DB_HOST ||
     !process.env.DB_USER ||
@@ -34,18 +29,14 @@ async function getPool(): Promise<mysql.Pool> {
     database: process.env.DB_NAME,
     port: parseInt(process.env.DB_PORT || "3306", 10),
     waitForConnections: true,
-    connectionLimit: 10, // Adjust as needed
+    connectionLimit: 10,
     queueLimit: 0,
   });
 
   console.log("MariaDB connection pool created.");
 
-  // Attempt to connect and ensure ONLY agent_deployed_games table is created/exists
   try {
     const connection = await pool.getConnection();
-
-    // ONLY create the table specific to the agent portal
-    // The 'deployed_contracts' and 'deployment_logs' tables are expected to be created by your deployment script.
     await connection.query(`
             CREATE TABLE IF NOT EXISTS agent_deployed_games (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -56,12 +47,12 @@ async function getPool(): Promise<mysql.Pool> {
                 deployed_by_address VARCHAR(255) NOT NULL,
                 transaction_hash VARCHAR(255) NOT NULL UNIQUE,
                 deployed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                categories VARCHAR(255) DEFAULT '',
                 FOREIGN KEY (factory_deployment_id) REFERENCES deployed_contracts(id)
             );
         `);
     console.log('Table "agent_deployed_games" ensured.');
-
-    connection.release(); // Release the connection back to the pool
+    connection.release();
     console.log(
       "MariaDB connection successful and agent_deployed_games table checked/created."
     );
@@ -72,7 +63,7 @@ async function getPool(): Promise<mysql.Pool> {
       error
     );
     if (pool) {
-      await pool.end(); // Close the pool if table creation fails
+      await pool.end();
       pool = null;
     }
     throw error;
@@ -115,9 +106,79 @@ export async function getQuery<T extends RowDataPacket = RowDataPacket>(
   const conn = await getPool().then((p) => p.getConnection());
   try {
     const [rows] = await conn.execute<T[]>(sql, params);
-    return rows[0]; // Return the first row or undefined
+    return rows[0];
   } finally {
     conn.release();
+  }
+}
+
+/**
+ * Fetches unique categories from agent_deployed_games.
+ * Returns an array of strings, e.g., ['Weather', 'Politics'].
+ */
+export async function getUniqueCategoriesFromDb(): Promise<string[]> {
+  try {
+    const rows = (await allQuery(`
+            SELECT DISTINCT categories FROM agent_deployed_games WHERE categories IS NOT NULL AND categories != '';
+        `)) as Array<RowDataPacket & { categories: string }>;
+
+    const allCategories = new Set<string>();
+    rows.forEach((row) => {
+      row.categories.split(",").forEach((cat) => {
+        const trimmedCat = cat.trim();
+        if (trimmedCat) {
+          allCategories.add(trimmedCat);
+        }
+      });
+    });
+    return Array.from(allCategories).sort();
+  } catch (error) {
+    console.error("Error fetching unique categories:", error);
+    return [];
+  }
+}
+
+/**
+ * Fetches deployed games with pagination and optional category filter.
+ */
+export async function getDeployedGamesFromDb(
+  category: string | null,
+  page: number,
+  limit: number
+): Promise<{ games: AgentDeployedGame[]; totalCount: number }> {
+  try {
+    const offset = (page - 1) * limit;
+    let whereClause = "";
+    const params: (string | number)[] = [];
+
+    if (category && category !== "All") {
+      whereClause = "WHERE FIND_IN_SET(?, categories)";
+      params.push(category);
+    }
+
+    const countQuery = `SELECT COUNT(*) as count FROM agent_deployed_games ${whereClause};`;
+    // --- MODIFIED LINE HERE ---
+    const countResult = await allQuery<
+      Array<RowDataPacket & { count: number }>
+    >(countQuery, params);
+    // --- END MODIFIED LINE ---
+
+    const totalCount = countResult.length > 0 ? countResult[0].count : 0;
+
+    const gamesQuery = `
+            SELECT * FROM agent_deployed_games
+            ${whereClause}
+            ORDER BY deployed_at DESC
+            LIMIT ? OFFSET ?;
+        `;
+    params.push(limit, offset);
+
+    const games = await allQuery<AgentDeployedGame[]>(gamesQuery, params);
+
+    return { games, totalCount };
+  } catch (error) {
+    console.error("Error fetching deployed games:", error);
+    return { games: [], totalCount: 0 };
   }
 }
 

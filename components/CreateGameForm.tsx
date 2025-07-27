@@ -14,10 +14,25 @@ declare global {
   }
 }
 
+// Define the predefined categories
+const PREDEFINED_CATEGORIES = [
+  "Weather",
+  "Politics",
+  "Sports",
+  "Technology",
+  "Finance",
+  "Entertainment",
+  "Others",
+];
+
 export default function CreateGameForm({ factoryAbi }: CreateGameFormProps) {
-  const [oracleAddress, setOracleAddress] = useState("");
-  const [predictionMarketOracle, setPredictionMarketOracle] = useState("");
+  const [question, setQuestion] = useState("");
+  const [answersInput, setAnswersInput] = useState("");
+  const [oddsInput, setOddsInput] = useState("");
   const [depositAmount, setDepositAmount] = useState("");
+  // New state for selected categories
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+
   const [signer, setSigner] = useState<JsonRpcSigner | null>(null);
   const [contract, setContract] = useState<Contract | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -30,7 +45,6 @@ export default function CreateGameForm({ factoryAbi }: CreateGameFormProps) {
   const agentId = process.env.NEXT_PUBLIC_AGENT_ID;
   const chainId = process.env.NEXT_PUBLIC_CHAIN_ID;
 
-  // Use a ref to store the contract instance
   const contractRef = useRef<Contract | null>(null);
 
   useEffect(() => {
@@ -47,7 +61,7 @@ export default function CreateGameForm({ factoryAbi }: CreateGameFormProps) {
             currentSigner
           );
           setContract(factoryContract);
-          contractRef.current = factoryContract; // Store in ref
+          contractRef.current = factoryContract;
         } catch (error) {
           console.error("Error initializing ethers or contract:", error);
           setMessage({
@@ -70,6 +84,14 @@ export default function CreateGameForm({ factoryAbi }: CreateGameFormProps) {
     initEthers();
   }, [factoryAddress, factoryAbi]);
 
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategories((prev) =>
+      prev.includes(category)
+        ? prev.filter((c) => c !== category)
+        : [...prev, category]
+    );
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage(null);
@@ -83,8 +105,17 @@ export default function CreateGameForm({ factoryAbi }: CreateGameFormProps) {
       setIsLoading(false);
       return;
     }
-    if (!oracleAddress || !predictionMarketOracle || !depositAmount) {
+    if (!question || !answersInput || !oddsInput || !depositAmount) {
       setMessage({ type: "error", text: "All fields are required." });
+      setIsLoading(false);
+      return;
+    }
+    if (selectedCategories.length === 0) {
+      // Require at least one category
+      setMessage({
+        type: "error",
+        text: "Please select at least one category.",
+      });
       setIsLoading(false);
       return;
     }
@@ -97,18 +128,47 @@ export default function CreateGameForm({ factoryAbi }: CreateGameFormProps) {
       return;
     }
 
+    const answersArray = answersInput
+      .split(",")
+      .map((ans) => ans.trim())
+      .filter((ans) => ans.length > 0);
+    const oddsArray = oddsInput
+      .split(",")
+      .map((odd) => BigInt(odd.trim()))
+      .filter((odd) => odd > 0n);
+
+    if (answersArray.length === 0 || oddsArray.length === 0) {
+      setMessage({
+        type: "error",
+        text: "Please enter valid answers and odds separated by commas.",
+      });
+      setIsLoading(false);
+      return;
+    }
+    if (answersArray.length !== oddsArray.length) {
+      setMessage({
+        type: "error",
+        text: "Number of answers must match number of odds.",
+      });
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const depositValue = parseEther(depositAmount);
 
       console.log("Calling createGame with:", {
-        oracleAddress,
-        predictionMarketOracle,
+        question,
+        answersArray,
+        oddsArray: oddsArray.map((o) => o.toString()),
         depositValue: depositValue.toString(),
+        selectedCategories: selectedCategories, // For console log
       });
 
       const tx = await contractRef.current.createGame(
-        oracleAddress,
-        predictionMarketOracle,
+        question,
+        answersArray,
+        oddsArray,
         { value: depositValue }
       );
 
@@ -122,11 +182,9 @@ export default function CreateGameForm({ factoryAbi }: CreateGameFormProps) {
       console.log("Transaction confirmed:", receipt);
 
       if (receipt && receipt.status === 1) {
-        // Find the GameCreated event
         let gameIdOnChain: number | null = null;
         let gameAddress: string | null = null;
 
-        // Iterate through logs to find the GameCreated event
         for (const log of receipt.logs) {
           try {
             const parsedLog = contractRef.current.interface.parseLog(log);
@@ -136,7 +194,6 @@ export default function CreateGameForm({ factoryAbi }: CreateGameFormProps) {
               break;
             }
           } catch (parseError) {
-            // This log might not be from our contract or not the GameCreated event
             console.log("Could not parse log, skipping:", log);
           }
         }
@@ -153,7 +210,6 @@ export default function CreateGameForm({ factoryAbi }: CreateGameFormProps) {
             gameAddress
           );
 
-          // Record deployment in the database via Server Action
           const result = await recordAgentGameDeployment({
             factoryAddress: factoryAddress!,
             gameIdOnChain: gameIdOnChain,
@@ -162,6 +218,7 @@ export default function CreateGameForm({ factoryAbi }: CreateGameFormProps) {
             deployedByAddress: await signer.getAddress(),
             transactionHash: receipt.hash,
             chainId: parseInt(chainId!),
+            categories: selectedCategories, // <-- PASS SELECTED CATEGORIES
           });
 
           if (result.success) {
@@ -169,6 +226,12 @@ export default function CreateGameForm({ factoryAbi }: CreateGameFormProps) {
               type: "success",
               text: `Game created and recorded in DB! Game ID: ${gameIdOnChain}`,
             });
+            // Optional: Clear form after successful submission
+            setQuestion("");
+            setAnswersInput("");
+            setOddsInput("");
+            setDepositAmount("");
+            setSelectedCategories([]);
           } else {
             setMessage({
               type: "error",
@@ -197,41 +260,99 @@ export default function CreateGameForm({ factoryAbi }: CreateGameFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md">
+    <form
+      onSubmit={handleSubmit}
+      className="bg-white p-6 rounded-lg shadow-md mb-8"
+    >
+      <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">
+        Create New Game
+      </h2>
+
       <div className="mb-4">
         <label
-          htmlFor="oracleAddress"
+          htmlFor="question"
           className="block text-gray-700 text-sm font-bold mb-2"
         >
-          Oracle Address (e.g., Chainlink)
+          Question
         </label>
-        <input
-          type="text"
-          id="oracleAddress"
-          value={oracleAddress}
-          onChange={(e) => setOracleAddress(e.target.value)}
-          placeholder="0x..."
+        <textarea
+          id="question"
+          value={question}
+          onChange={(e) => setQuestion(e.target.value)}
+          placeholder="e.g., Will BTC price be over $70,000 by 2025-12-31?"
+          rows={3}
           className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
           required
-        />
+        ></textarea>
       </div>
 
       <div className="mb-4">
         <label
-          htmlFor="predictionMarketOracle"
+          htmlFor="answers"
           className="block text-gray-700 text-sm font-bold mb-2"
         >
-          Prediction Market Oracle Address
+          Answers (comma-separated)
         </label>
         <input
           type="text"
-          id="predictionMarketOracle"
-          value={predictionMarketOracle}
-          onChange={(e) => setPredictionMarketOracle(e.target.value)}
-          placeholder="0x..."
+          id="answers"
+          value={answersInput}
+          onChange={(e) => setAnswersInput(e.target.value)}
+          placeholder="e.g., Yes,No,Maybe"
           className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
           required
         />
+        <p className="text-gray-500 text-xs mt-1">
+          Enter multiple answers separated by commas (e.g., Yes,No).
+        </p>
+      </div>
+
+      <div className="mb-4">
+        <label
+          htmlFor="odds"
+          className="block text-gray-700 text-sm font-bold mb-2"
+        >
+          Odds (comma-separated, integer values corresponding to answers)
+        </label>
+        <input
+          type="text"
+          id="odds"
+          value={oddsInput}
+          onChange={(e) => setOddsInput(e.target.value)}
+          placeholder="e.g., 100,200,50"
+          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          required
+        />
+        <p className="text-gray-500 text-xs mt-1">
+          Enter odds for each answer, separated by commas. Values must be
+          integers (e.g., 100,200).
+        </p>
+      </div>
+
+      {/* New Category Multi-Select Field */}
+      <div className="mb-6">
+        <label className="block text-gray-700 text-sm font-bold mb-2">
+          Categories
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {PREDEFINED_CATEGORIES.map((category) => (
+            <label key={category} className="inline-flex items-center">
+              <input
+                type="checkbox"
+                className="form-checkbox h-4 w-4 text-blue-600 rounded"
+                value={category}
+                checked={selectedCategories.includes(category)}
+                onChange={() => handleCategoryChange(category)}
+              />
+              <span className="ml-2 text-gray-700 text-sm">{category}</span>
+            </label>
+          ))}
+        </div>
+        {selectedCategories.length === 0 && (
+          <p className="text-red-500 text-xs mt-1">
+            Please select at least one category.
+          </p>
+        )}
       </div>
 
       <div className="mb-6">
@@ -257,9 +378,14 @@ export default function CreateGameForm({ factoryAbi }: CreateGameFormProps) {
       <button
         type="submit"
         disabled={
-          isLoading || !signer || !contract || !factoryAddress || !factoryAbi
+          isLoading ||
+          !signer ||
+          !contract ||
+          !factoryAddress ||
+          !factoryAbi ||
+          selectedCategories.length === 0
         }
-        className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+        className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full"
       >
         {isLoading ? "Creating Game..." : "Create Forecast Game"}
       </button>

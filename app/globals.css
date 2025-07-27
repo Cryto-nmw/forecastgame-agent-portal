@@ -2,23 +2,26 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom fonts or slight overrides for 'fancier' look */
 body {
-  font-family: sans-serif;
-  background-color: #f0f2f5;
-  color: #333;
+  font-family: "Inter", sans-serif; /* Or another modern font */
+  background-color: #f8f9fa; /* Lighter background */
+  color: #212529; /* Darker text */
 }
 
 .container {
-  max-width: 960px;
+  max-width: 1200px; /* Adjust as needed */
+  margin-left: auto;
+  margin-right: auto;
 }
 
 h1,
 h2,
 h3 {
-  color: #007bff;
+  color: #007bff; /* Use a consistent primary color */
 }
 
-/* Basic button styling */
+/* Basic button styling (already there, just ensuring good defaults) */
 button {
   background-color: #007bff;
   color: white;
@@ -26,9 +29,10 @@ button {
   border-radius: 0.25rem;
   cursor: pointer;
   border: none;
+  transition: background-color 0.2s ease-in-out;
 }
 
-button:hover {
+button:hover:not(:disabled) {
   background-color: #0056b3;
 }
 
@@ -37,36 +41,39 @@ button:disabled {
   cursor: not-allowed;
 }
 
-/* Form styling */
 input[type="text"],
-input[type="number"] {
+input[type="number"],
+textarea {
   width: 100%;
-  padding: 0.5rem;
+  padding: 0.75rem; /* Slightly more padding */
   margin-bottom: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 0.25rem;
+  border: 1px solid #ced4da; /* Lighter border */
+  border-radius: 0.375rem; /* Slightly more rounded */
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05); /* Subtle inner shadow */
 }
 
 label {
   display: block;
   margin-bottom: 0.5rem;
-  font-weight: bold;
+  font-weight: 600; /* Slightly bolder labels */
+  color: #343a40;
 }
 
 .message-box {
   padding: 1rem;
   border-radius: 0.25rem;
   margin-top: 1rem;
+  font-weight: 500;
 }
 
 .message-box.success {
   background-color: #d4edda;
   color: #155724;
-  border-color: #c3e6cb;
+  border: 1px solid #c3e6cb;
 }
 
 .message-box.error {
   background-color: #f8d7da;
   color: #721c24;
-  border-color: #f5c6cb;
+  border: 1px solid #f5c6cb;
 }

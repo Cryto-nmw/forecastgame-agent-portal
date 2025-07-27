@@ -1,7 +1,12 @@
 "use server";
 
-import { getQuery, runQuery } from "@/lib/db";
-import { ContractDetails } from "@/types/db"; // Assuming you create this type
+import {
+  getQuery,
+  runQuery,
+  getUniqueCategoriesFromDb,
+  getDeployedGamesFromDb,
+} from "@/lib/db"; // <-- IMPORT NEW DB FUNCTIONS
+import { ContractDetails, AgentDeployedGame } from "@/types/db";
 import { ResultSetHeader } from "mysql2/promise";
 
 interface GameDeploymentData {
@@ -12,7 +17,21 @@ interface GameDeploymentData {
   deployedByAddress: string;
   transactionHash: string;
   chainId: number;
+  categories: string[]; // <-- ADD THIS FIELD (as an array)
 }
+
+// interface ContractDetails {
+//   // Re-declaring for type check (ensure it matches types/db.ts)
+//   id: number;
+//   contract_name: string;
+//   address: string;
+//   abi: string | Buffer;
+//   bytecode: string | Buffer;
+//   deployed_at: Date;
+//   status: string;
+//   chain_id: number;
+//   compiler_version: string;
+// }
 
 export async function getFactoryDetails(): Promise<ContractDetails | null> {
   const factoryAddress = process.env.NEXT_PUBLIC_FACTORY_ADDRESS;
@@ -33,7 +52,6 @@ export async function getFactoryDetails(): Promise<ContractDetails | null> {
       "ForecastGameFactory",
     ]);
 
-    // Convert Buffer ABI to string if necessary (mysql2 returns Buffer for TEXT/BLOB)
     if (result && Buffer.isBuffer(result.abi)) {
       result.abi = result.abi.toString("utf8");
     }
@@ -48,10 +66,14 @@ export async function getFactoryDetails(): Promise<ContractDetails | null> {
   }
 }
 
+// UPDATED: recordAgentGameDeployment to include categories
 export async function recordAgentGameDeployment(
   data: GameDeploymentData
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    // Convert categories array to a comma-separated string for storage
+    const categoriesString = data.categories.join(",");
+
     const query = `
       INSERT INTO agent_deployed_games (
         factory_deployment_id,
@@ -60,10 +82,11 @@ export async function recordAgentGameDeployment(
         agent_id,
         deployed_by_address,
         transaction_hash,
-        deployed_at
+        deployed_at,
+        categories
       ) VALUES (
         (SELECT id FROM deployed_contracts WHERE address = ? AND chain_id = ?),
-        ?, ?, ?, ?, ?, NOW()
+        ?, ?, ?, ?, ?, NOW(), ?
       );
     `;
 
@@ -75,6 +98,7 @@ export async function recordAgentGameDeployment(
       data.agentId,
       data.deployedByAddress,
       data.transactionHash,
+      categoriesString, // <-- ADD THIS
     ]);
 
     if (result.affectedRows === 1) {
@@ -105,3 +129,25 @@ export async function recordAgentGameDeployment(
     return { success: false, error: error.message || "Unknown database error" };
   }
 }
+
+// --- NEW SERVER ACTIONS FOR GAME LISTING ---
+
+/**
+ * Server Action to get all unique categories from the database for tabs.
+ */
+export async function getAllCategories(): Promise<string[]> {
+  return await getUniqueCategoriesFromDb();
+}
+
+/**
+ * Server Action to get deployed games with pagination and category filter.
+ */
+export async function getGames(
+  category: string | null,
+  page: number,
+  limit: number
+): Promise<{ games: AgentDeployedGame[]; totalCount: number }> {
+  return await getDeployedGamesFromDb(category, page, limit);
+}
+
+// --- END NEW SERVER ACTIONS ---
