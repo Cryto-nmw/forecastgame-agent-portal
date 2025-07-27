@@ -258,11 +258,10 @@ export default function CreateGameForm({ factoryAbi }: CreateGameFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {" "}
-      {/* Use space-y for consistent vertical rhythm */}
       <h2 className="text-3xl font-extrabold text-gray-900 mb-6 text-center">
         Deploy New Forecast Game
       </h2>
+
       <div>
         <label
           htmlFor="question"
@@ -279,6 +278,7 @@ export default function CreateGameForm({ factoryAbi }: CreateGameFormProps) {
           required
         ></textarea>
       </div>
+
       <div>
         <label
           htmlFor="answers"
@@ -298,6 +298,7 @@ export default function CreateGameForm({ factoryAbi }: CreateGameFormProps) {
           Enter multiple answers separated by commas (e.g., Yes,No).
         </p>
       </div>
+
       <div>
         <label
           htmlFor="odds"
@@ -318,6 +319,7 @@ export default function CreateGameForm({ factoryAbi }: CreateGameFormProps) {
           integers (e.g., 100,200).
         </p>
       </div>
+
       {/* Categories Field */}
       <div>
         <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -346,6 +348,7 @@ export default function CreateGameForm({ factoryAbi }: CreateGameFormProps) {
           </p>
         )}
       </div>
+
       <div>
         <label
           htmlFor="depositAmount"
@@ -367,29 +370,37 @@ export default function CreateGameForm({ factoryAbi }: CreateGameFormProps) {
           Amount will be sent as Wei to the contract.
         </p>
       </div>
-      <button
-        type="submit"
-        disabled={
-          isLoading ||
-          !signer ||
-          !contract ||
-          !factoryAddress ||
-          !factoryAbi ||
-          selectedCategories.length === 0
-        }
-        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-lg"
-      >
-        {isLoading ? "Creating Game..." : "Deploy Forecast Game"}
-      </button>
-      {message && (
-        <div
-          className={`message-box ${
-            message.type === "success" ? "success" : "error"
-          }`}
+
+      {/* Button and Message Container */}
+      <div className="flex flex-col items-center pt-4">
+        {" "}
+        {/* Added padding top for separation */}
+        <button
+          type="submit"
+          disabled={
+            isLoading ||
+            !signer ||
+            !contract ||
+            !factoryAddress ||
+            !factoryAbi ||
+            selectedCategories.length === 0
+          }
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-lg"
         >
-          {message.text}
-        </div>
-      )}
+          {isLoading ? "Creating Game..." : "Deploy Forecast Game"}
+        </button>
+        {message && (
+          <div
+            className={`message-box ${
+              message.type === "success" ? "success" : "error"
+            } mt-4 w-full`}
+          >
+            {" "}
+            {/* Ensure message takes full width */}
+            {message.text}
+          </div>
+        )}
+      </div>
     </form>
   );
 }
